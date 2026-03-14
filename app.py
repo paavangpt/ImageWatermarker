@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 import io
 
-# Custom CSS for modern UI
 st.markdown("""
 <style>
     .main .block-container {
@@ -46,24 +45,21 @@ def add_watermark(img, text, position, font_size, color, opacity, pattern=False,
     img = img.convert("RGBA")
     txt = Image.new("RGBA", img.size, (255, 255, 255, 0))
     
-    # Try to load a system font with specified size
     try:
         font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", font_size)
     except OSError:
         try:
             font = ImageFont.truetype("/Library/Fonts/Arial.ttf", font_size)
         except OSError:
-            font = ImageFont.load_default()  # Fallback, but size won't change
+            font = ImageFont.load_default()
     
     fill_color = hex_to_rgba(color, opacity)
     
-    # Create base text image
     bbox = ImageDraw.Draw(Image.new("RGBA", (1,1))).textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
     
     if pattern:
-        # Repeat watermark as pattern
         spacing_x = text_width + h_gap
         spacing_y = text_height + v_gap
         for x in range(0, img.width, spacing_x):
@@ -74,8 +70,8 @@ def add_watermark(img, text, position, font_size, color, opacity, pattern=False,
                 if rotation != 0:
                     text_img = text_img.rotate(rotation, expand=True)
                 txt.paste(text_img, (x, y), text_img)
+
     else:
-        # Single watermark at specified position
         text_img = Image.new("RGBA", (text_width, text_height), (0,0,0,0))
         text_draw = ImageDraw.Draw(text_img)
         text_draw.text((0, 0), text, font=font, fill=fill_color)
@@ -105,9 +101,8 @@ def add_watermark(img, text, position, font_size, color, opacity, pattern=False,
     return watermarked
 
 # Streamlit UI
-st.title("Image Watermarking App")
+st.title("Stampify")
 
-# Sidebar for configuration
 with st.sidebar:
     st.header("📝 Configuration")
     uploaded_file = st.file_uploader("Choose an image", type=["jpg", "png", "jpeg", "bmp", "gif"])
@@ -125,7 +120,6 @@ with st.sidebar:
     h_gap = st.slider("Horizontal gap", 0, 200, 20)
     v_gap = st.slider("Vertical gap", 0, 200, 20)
 
-# Main area for preview
 st.header("Preview")
 if uploaded_file is not None and watermark_text:
     image = Image.open(uploaded_file)
@@ -134,7 +128,6 @@ if uploaded_file is not None and watermark_text:
     
     st.image(watermarked_image, caption="Watermarked Image", width=800)
     
-    # Prepare download
     buf = io.BytesIO()
     watermarked_image.save(buf, format="PNG")
     byte_im = buf.getvalue()
